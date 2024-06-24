@@ -2,23 +2,77 @@
 
 ## Introduction
 
+BaselineAdminNetworkPolicy(BANP) is a cluster scope feature intended for cluster administrators / network administrators to give their clusters sensible base defaults or fallback configurations for networks not defined or created by the users.
+
 ## Motivation
-
-## How to enable this feature on an OVN-Kubernetes cluster
-
-## Workflow Description
-
-## Implementation Details
-
-## Troubleshooting
-
-## Future Items
-
-Kubernetes AdminNetworkPolicy API reference: https://github.com/kubernetes-sigs/network-policy-api/blob/429a9e6ae89d411f89d5a16aba38a5d920c969ee/apis/v1alpha1/baseline_adminnetworkpolicy_types.go
 
 Since we can delegate decisions from administrators to namespace owners, what if namespace owners don't have policies in place for the same set of subjects? Admins in such cases might want to keep a default set of guardrails in the cluster. Thus we allow one BANP to be created in the cluster with the name `default`. The rules in `default` BANP are created in Tier3.
 
-Sample API:
+## How to enable this feature on an OVN-Kubernetes cluster
+
+This feature is under the techPreview feature gate and as such in order to begin using it you must first enable the techPreview feature gate.
+
+The following commands will allow you to enable all techPreview features
+
+``
+kubectl edit featuregate cluster
+``
+
+modify the file, changing
+
+```
+...
+spec:
+  featureSet: {}
+...
+```
+
+to 
+
+```
+...
+spec:
+  featureSet: TechPreviewNoUpgrade
+...
+```
+
+This will take a long time, so be prepared to wait. All nodes will begin cycling between `Ready,SchedulingDisabled` to `NotReady` to `Ready` as a sign of its completion.
+
+## Workflow Description
+
+Kubernetes AdminNetworkPolicy API reference: https://github.com/kubernetes-sigs/network-policy-api/blob/429a9e6ae89d411f89d5a16aba38a5d920c969ee/apis/v1alpha1/baseline_adminnetworkpolicy_types.go
+
+```
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: BaselineAdminNetworkPolicy
+metadata:
+  name: default
+spec:
+  subject:
+    namespaces:
+      matchLabels:
+          conformance-house: gryffindor
+  ingress:
+  - name: "deny-all-ingress-from-slytherin"
+    action: "Deny"
+    from:
+    - namespaces:
+        namespaceSelector:
+          matchLabels:
+            conformance-house: slytherin
+  egress:
+  - name: "deny-all-egress-to-slytherin"
+    action: "Deny"
+    to:
+    - namespaces:
+        namespaceSelector:
+          matchLabels:
+            conformance-house: slytherin
+```
+
+Above is a sample BANP. 
+
+## Implementation Details
 
 ```
 apiVersion: policy.networking.k8s.io/v1alpha1
@@ -107,3 +161,17 @@ external_ids        : {BaselineAdminNetworkPolicy=default}
 name                : a16982411286042166782
 ports               : [a22a4c3a-bb65-4b22-8bc1-13e1e8899a7b, c7e4ffe3-73df-4db5-a3bc-a9649394d549]
 ```
+
+## Troubleshooting
+
+Same procedure as AdminNetworkPolicy
+
+## Best Practices
+
+* Don't go to specific with BANP. It is intended to be a generic fallback not a specific networking solution
+* Don't try to use it to replace NetworkPolicies or AdminNetworkPolicies they serve different stack layers.
+
+
+## References
+
+Kubernetes AdminNetworkPolicy API reference: https://github.com/kubernetes-sigs/network-policy-api/blob/429a9e6ae89d411f89d5a16aba38a5d920c969ee/apis/v1alpha1/baseline_adminnetworkpolicy_types.go
