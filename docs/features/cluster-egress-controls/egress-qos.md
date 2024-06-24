@@ -2,6 +2,24 @@
 
 ## Introduction
 
+## Motivation
+
+## How to enable this feature on an OVN-Kubernetes Cluster
+
+## Workflow Description
+
+## Implementation Details
+
+## Troubleshooting
+
+## Best Practices
+
+## Future Items
+
+## Known Limitations
+
+## References
+
 The EgressQoS feature enables marking pods egress traffic with a valid QoS Differentiated Services Code Point (DSCP) value.
 The QoS markings will be consumed and acted upon by network appliances outside of the Kubernetes cluster
 to optimize traffic flow throughout their networks.
